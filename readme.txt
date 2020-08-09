@@ -18,3 +18,7 @@ py -m pip install -r requirements.txt
 cd DividendScraper
 py dividend_scraper.py
 ```
+
+# Modify dividend scraper
+
+Open `dividend_scraper.py` and update params
