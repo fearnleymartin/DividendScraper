@@ -20,7 +20,8 @@ buyback_keywords = [
 
 # constants (Don't modify)
 base_url = 'https://www.investegate.co.uk'
-excel_filepath = 'dividends.csv'
+excel_filepath = f'dividends_{str.join("_",dates)}_{"ftse100" if ftse == 1 else "ftse250"}.csv'
+excel_filepath_xlsx = f'dividends_{str.join("_",dates)}_{"ftse100" if ftse == 1 else "ftse250"}.xlsx'
 
 
 def get_ftse_table(dates):
@@ -73,6 +74,8 @@ def check_companies(ftse_table: pd.DataFrame):
     ftse_table['contains_dividend_keywords'] = contains_dividend_keywords
     ftse_table['contains_interim_dividend_keywords'] = contains_interim_dividend_keywords
     ftse_table['contains_buyback_keywords'] = contains_buyback_keywords
+    ftse_table['contains_overall'] = ftse_table.apply(
+        lambda row: row['contains_dividend_keywords'] or row['contains_interim_dividend_keywords'] or row['contains_buyback_keywords'], axis=1)
     print("Finished processing companies.")
     return ftse_table
 
@@ -109,7 +112,7 @@ def check_can_write_to_excel():
     try:
         open(excel_filepath, "r+")  # or "a+", whatever you need
     except IOError:
-        print("Could not open file! Please close Excel!")
+        raise IOError("Could not open file! Please close Excel!")
 
 
 def main():
@@ -118,15 +121,10 @@ def main():
     table = get_ftse_table(dates)
     table = check_companies(table)
     table.to_csv(excel_filepath)
+    table.to_excel(excel_filepath_xlsx)
     print(table)
     print("Finished running.")
 
 
 if __name__ == "__main__":
     main()
-    # check_company(
-    #     'https://www.investegate.co.uk/worldwide-healthcare--wwh-/prn/issue-of-equity/20200803182605PA4E1/',
-    #     dividend_keywords=dividend_keywords,
-    #     interim_dividend_keywords=interim_dividend_keywords,
-    #     buyback_keywords=buyback_keywords
-    #     )
