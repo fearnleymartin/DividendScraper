@@ -1,3 +1,5 @@
+import os
+
 import requests
 import pandas as pd
 from bs4 import BeautifulSoup
@@ -110,9 +112,10 @@ def check_company(url, dividend_keywords=dividend_keywords, interim_dividend_key
 
 def check_can_write_to_excel():
     try:
-        open(excel_filepath, "r+")  # or "a+", whatever you need
+        open(excel_filepath_xlsx, "r+")  # or "a+", whatever you need
     except IOError:
-        raise IOError("Could not open file! Please close Excel!")
+        if os.path.isfile(excel_filepath_xlsx):
+            raise IOError("Could not open file! Please close Excel!")
 
 
 def main():
