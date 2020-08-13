@@ -66,18 +66,33 @@ def check_companies(ftse_table: pd.DataFrame):
     contains_dividend_keywords = []
     contains_interim_dividend_keywords = []
     contains_buyback_keywords = []
+    dividend_keywords_text = []
+    interim_dividend_keywords_text = []
+    buyback_keywords_text = []
+    count = 1
+    total = len(ftse_table)
     for row in ftse_table.iterrows():
         idx, series = row
-        print(f'Processing {series["Company"]}...')
+        print(f'Processing {series["Company"]} ({count}/{total})...')
         check_companies_result = check_company(series['AnnouncementLink'])
         contains_dividend_keywords.append(check_companies_result['contains_dividend_keywords'])
         contains_interim_dividend_keywords.append(check_companies_result['contains_interim_dividend_keywords'])
         contains_buyback_keywords.append(check_companies_result['contains_buyback_keywords'])
+        dividend_keywords_text.append(check_companies_result['dividend_keywords_text'])
+        interim_dividend_keywords_text.append(check_companies_result['interim_dividend_keywords_text'])
+        buyback_keywords_text.append(check_companies_result['buyback_keywords_text'])
+        count += 1
     ftse_table['contains_dividend_keywords'] = contains_dividend_keywords
     ftse_table['contains_interim_dividend_keywords'] = contains_interim_dividend_keywords
     ftse_table['contains_buyback_keywords'] = contains_buyback_keywords
+
     ftse_table['contains_overall'] = ftse_table.apply(
         lambda row: row['contains_dividend_keywords'] or row['contains_interim_dividend_keywords'] or row['contains_buyback_keywords'], axis=1)
+
+    ftse_table['dividend_keywords_text'] = dividend_keywords_text
+    ftse_table['interim_dividend_keywords_text'] = interim_dividend_keywords_text
+    ftse_table['buyback_keywords_text'] = buyback_keywords_text
+
     print("Finished processing companies.")
     return ftse_table
 
@@ -89,25 +104,41 @@ def check_company(url, dividend_keywords=dividend_keywords, interim_dividend_key
     text = article_row.get_text()
     # print(r)
 
+    # variable initialisation
     contains_dividend_keywords = False
     contains_interim_dividend_keywords = False
     contains_buyback_keywords = False
+    dividend_keywords_text = []
+    interim_dividend_keywords_text = []
+    buyback_keywords_text = []
 
+    # Parse text and update variable if necessary
     for kw in dividend_keywords:
         if kw in text:
             contains_dividend_keywords = True
+            dividend_keywords_text = parse_paragraph(text, kw)
     for kw in interim_dividend_keywords:
         if kw in text:
             contains_interim_dividend_keywords = True
+            interim_dividend_keywords_text = parse_paragraph(text, kw)
     for kw in buyback_keywords:
         if kw in text:
             contains_buyback_keywords = True
+            buyback_keywords_text = parse_paragraph(text, kw)
 
+    # Return result
     return {
         'contains_dividend_keywords': contains_dividend_keywords,
         'contains_interim_dividend_keywords': contains_interim_dividend_keywords,
-        'contains_buyback_keywords': contains_buyback_keywords
+        'contains_buyback_keywords': contains_buyback_keywords,
+        'dividend_keywords_text': dividend_keywords_text,
+        'interim_dividend_keywords_text': interim_dividend_keywords_text,
+        'buyback_keywords_text': buyback_keywords_text,
     }
+
+
+def parse_paragraph(text, kw):
+    return str.join('\n\n',[para.replace(kw, f'#####{kw}#####') for para in text.split("\n") if kw in para])
 
 
 def check_can_write_to_excel():
