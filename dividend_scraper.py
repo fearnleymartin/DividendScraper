@@ -1,13 +1,19 @@
+# download libraries#
 import os
-
 import requests
 import pandas as pd
 from bs4 import BeautifulSoup
+from datetime import datetime
 
 # Parameters (You can modify these)
-dates = ['20200803', '20200804']
-ftse = 1  # 1 for ftse 100, 2 for ftse 250
+end_date = datetime.today()
 
+ftse = 2  # 1 for ftse 100, 2 for ftse 250
+
+# get a list of dates
+dates=pd.bdate_range(end=end_date, periods=10).strftime('%Y%m%d').values.tolist()
+
+# define keywords
 dividend_keywords = ['dividend']
 interim_dividend_keywords = ['interim dividend']
 buyback_keywords = [
@@ -19,6 +25,8 @@ buyback_keywords = [
     'repurchases',
     'own shares',
 ]
+suspension_keywords =['suspend','cancel']
+reinstatement_keywords =['resume','resuming','resumption','reinstate','reinstating','reinstatement']
 
 # constants (Don't modify)
 base_url = 'https://www.investegate.co.uk'
@@ -66,9 +74,13 @@ def check_companies(ftse_table: pd.DataFrame):
     contains_dividend_keywords = []
     contains_interim_dividend_keywords = []
     contains_buyback_keywords = []
+    contains_suspension_keywords = []
+    contains_reinstatement_keywords = []
     dividend_keywords_text = []
     interim_dividend_keywords_text = []
     buyback_keywords_text = []
+    suspension_keywords_text = []
+    reinstatement_keywords_text = []
     count = 1
     total = len(ftse_table)
     for row in ftse_table.iterrows():
@@ -78,13 +90,19 @@ def check_companies(ftse_table: pd.DataFrame):
         contains_dividend_keywords.append(check_companies_result['contains_dividend_keywords'])
         contains_interim_dividend_keywords.append(check_companies_result['contains_interim_dividend_keywords'])
         contains_buyback_keywords.append(check_companies_result['contains_buyback_keywords'])
+        contains_suspension_keywords.append(check_companies_result['contains_suspension_keywords'])
+        contains_reinstatement_keywords.append(check_companies_result['contains_reinstatement_keywords'])
         dividend_keywords_text.append(check_companies_result['dividend_keywords_text'])
         interim_dividend_keywords_text.append(check_companies_result['interim_dividend_keywords_text'])
         buyback_keywords_text.append(check_companies_result['buyback_keywords_text'])
+        suspension_keywords_text.append(check_companies_result['suspension_keywords_text'])
+        reinstatement_keywords_text.append(check_companies_result['reinstatement_keywords_text'])
         count += 1
     ftse_table['contains_dividend_keywords'] = contains_dividend_keywords
     ftse_table['contains_interim_dividend_keywords'] = contains_interim_dividend_keywords
     ftse_table['contains_buyback_keywords'] = contains_buyback_keywords
+    ftse_table['contains_suspension_keywords']=contains_suspension_keywords
+    ftse_table['contains_reinstatement_keywords']=contains_reinstatement_keywords
 
     ftse_table['contains_overall'] = ftse_table.apply(
         lambda row: row['contains_dividend_keywords'] or row['contains_interim_dividend_keywords'] or row['contains_buyback_keywords'], axis=1)
@@ -92,12 +110,14 @@ def check_companies(ftse_table: pd.DataFrame):
     ftse_table['dividend_keywords_text'] = dividend_keywords_text
     ftse_table['interim_dividend_keywords_text'] = interim_dividend_keywords_text
     ftse_table['buyback_keywords_text'] = buyback_keywords_text
+    ftse_table['suspension_keywords_text']=suspension_keywords_text
+    ftse_table['reinstatement_keywords_text']=reinstatement_keywords_text
 
     print("Finished processing companies.")
     return ftse_table
 
 
-def check_company(url, dividend_keywords=dividend_keywords, interim_dividend_keywords=interim_dividend_keywords, buyback_keywords=buyback_keywords):
+def check_company(url, dividend_keywords=dividend_keywords, interim_dividend_keywords=interim_dividend_keywords, buyback_keywords=buyback_keywords, suspension_keywords=suspension_keywords, reinstatement_keywords=reinstatement_keywords):
     r = requests.get(url)
     soup = BeautifulSoup(r.content, 'html.parser')
     article_row = soup.findAll("div", {"class": "articleRow"})[0]
@@ -108,9 +128,13 @@ def check_company(url, dividend_keywords=dividend_keywords, interim_dividend_key
     contains_dividend_keywords = False
     contains_interim_dividend_keywords = False
     contains_buyback_keywords = False
+    contains_suspension_keywords = False
+    contains_reinstatement_keywords = False
     dividend_keywords_text = []
     interim_dividend_keywords_text = []
     buyback_keywords_text = []
+    suspension_keywords_text = []
+    reinstatement_keywords_text = []
 
     # Parse text and update variable if necessary
     for kw in dividend_keywords:
@@ -126,14 +150,29 @@ def check_company(url, dividend_keywords=dividend_keywords, interim_dividend_key
             contains_buyback_keywords = True
             buyback_keywords_text = parse_paragraph(text, kw)
 
+    for kw in suspension_keywords:
+        if kw in text:
+            contains_suspension_keywords = True
+            suspension_keywords_text = parse_paragraph(text, kw)
+    
+    for kw in reinstatement_keywords:
+        if kw in text:
+            contains_reinstatement_keywords = True
+            reinstatement_keywords_text = parse_paragraph(text, kw)    
+            
+
     # Return result
     return {
         'contains_dividend_keywords': contains_dividend_keywords,
         'contains_interim_dividend_keywords': contains_interim_dividend_keywords,
         'contains_buyback_keywords': contains_buyback_keywords,
+        'contains_suspension_keywords': contains_suspension_keywords,
+        'contains_reinstatement_keywords': contains_reinstatement_keywords,
         'dividend_keywords_text': dividend_keywords_text,
         'interim_dividend_keywords_text': interim_dividend_keywords_text,
         'buyback_keywords_text': buyback_keywords_text,
+        'suspension_keywords_text': suspension_keywords_text,
+        'reinstatement_keywords_text':reinstatement_keywords_text
     }
 
 
