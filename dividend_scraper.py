@@ -6,14 +6,12 @@ from bs4 import BeautifulSoup
 from datetime import datetime
 
 # Parameters (You can modify these)
-today=datetime.today().strftime('%Y%m%d')
-start_date = '20201102'
-end_date = today
+end_date = datetime.today()
 
 ftse = 2  # 1 for ftse 100, 2 for ftse 250
 
 # get a list of dates
-dates=pd.bdate_range(end=datetime.today(), periods=10).strftime('%Y%m%d').values.tolist()
+dates=pd.bdate_range(end=end_date, periods=10).strftime('%Y%m%d').values.tolist()
 
 # define keywords
 dividend_keywords = ['dividend']
