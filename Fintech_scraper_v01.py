@@ -9,26 +9,24 @@ base_url = 'https://sifted.eu/european-fintech-startups/'
 excel_filepath = 'fintech.csv'
 excel_filepath_xlsx = 'fintech.xlsx'
 
-# define the common function
-def get_field_by_div(kw,soup):
-    Fintech_table = soup.find_all("div", attrs={"class": "sifted-tile-table__item sifted-tile-table__item"})
-    fintech_list = []
-    for field in Fintech_table:
-        Children = field.findChildren("span", recursive=False)
-        if kw in Children[0].get_text():
-            # print(Children[1].get_text())
-            fintech_list.append(Children[1].get_text())
-    return fintech_list
+# define the common functions
+def get_values_from_div_nodes(kw, soup):
+    div_nodes = soup.find_all("div", attrs={"class": "sifted-tile-table__item sifted-tile-table__item"})
+    values_list = []
+    for div_node in div_nodes:
+        children = div_node.findChildren("span", recursive=False)
+        if kw in children[0].get_text():
+            values_list.append(children[1].get_text())
+    return values_list
 
-def get_field_by_p(kw,soup):
-    Fintech_table = soup.find_all("p", attrs={"class": "infotab"})
-    fintech_list = []
-    for field in Fintech_table:
-        Children = field.findChildren("span", recursive=False)
-        if kw in Children[0]['class']:
-            # print(field.get_text())
-            fintech_list.append(field.get_text())
-    return fintech_list
+def get_values_from_p_nodes(kw, soup):
+    p_notes = soup.find_all("p", attrs={"class": "infotab"})
+    values_list = []
+    for div_node in p_notes:
+        children = div_node.findChildren("span", recursive=False)
+        if kw in children[0]['class']:
+            values_list.append(div_node.get_text())
+    return values_list
 
 def get_fintech_list():
     start_url = base_url
@@ -39,32 +37,30 @@ def get_fintech_list():
     Fintech_names_table = soup.find_all("h1", attrs={"class": "sifted-tile__name"})
     fintech_names_list = []
     for name in Fintech_names_table:
-        # print(name.get_text())
         fintech_names_list.append(name.get_text())
 
     # get overview
     Fintech_overview_table = soup.find_all("div", attrs={"class": "sifted-tile-table__item"})
     fintech_overview_list = []
     for overview in Fintech_overview_table:
-        Children = overview.findChildren("span", recursive=False)
-        if "Overview" in Children[0].get_text():
-            # print(Children[1].get_text())
-            fintech_overview_list.append(Children[1].get_text())
+        children = overview.findChildren("span", recursive=False)
+        if "Overview" in children[0].get_text():
+            fintech_overview_list.append(children[1].get_text())
    
     # get stage
-    fintech_stage_list = get_field_by_div("Stage", soup)
+    fintech_stage_list = get_values_from_div_nodes("Stage", soup)
 
     # get year
-    fintech_year_list = get_field_by_div("Founded", soup)
+    fintech_year_list = get_values_from_div_nodes("Founded", soup)
 
     # get valuation
-    fintech_valuation_list = get_field_by_div("Valuation", soup)
+    fintech_valuation_list = get_values_from_div_nodes("Valuation", soup)
 
     # get location
-    fintech_location_list = get_field_by_p("icon-location", soup)
+    fintech_location_list = get_values_from_p_nodes("icon-location", soup)
 
     # get links
-    fintech_links_list = get_field_by_p("icon-link", soup)
+    fintech_links_list = get_values_from_p_nodes("icon-link", soup)
 
     #define table
     table=pd.DataFrame()
