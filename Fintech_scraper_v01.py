@@ -10,8 +10,8 @@ excel_filepath = 'fintech.csv'
 excel_filepath_xlsx = 'fintech.xlsx'
 
 # define the common functions
-def get_values_from_div_nodes(kw, soup):
-    div_nodes = soup.find_all("div", attrs={"class": "sifted-tile-table__item sifted-tile-table__item"})
+def get_values_from_div_nodes(kw,soup,class_name):
+    div_nodes = soup.find_all("div", attrs={"class": class_name})
     values_list = []
     for div_node in div_nodes:
         children = div_node.findChildren("span", recursive=False)
@@ -40,21 +40,16 @@ def get_fintech_list():
         fintech_names_list.append(name.get_text())
 
     # get overview
-    Fintech_overview_table = soup.find_all("div", attrs={"class": "sifted-tile-table__item"})
-    fintech_overview_list = []
-    for overview in Fintech_overview_table:
-        children = overview.findChildren("span", recursive=False)
-        if "Overview" in children[0].get_text():
-            fintech_overview_list.append(children[1].get_text())
-   
+    fintech_overview_list= get_values_from_div_nodes("Overview",soup,"sifted-tile-table__item")
+
     # get stage
-    fintech_stage_list = get_values_from_div_nodes("Stage", soup)
+    fintech_stage_list = get_values_from_div_nodes("Stage",soup,"sifted-tile-table__item sifted-tile-table__item")
 
     # get year
-    fintech_year_list = get_values_from_div_nodes("Founded", soup)
+    fintech_year_list = get_values_from_div_nodes("Founded", soup,"sifted-tile-table__item sifted-tile-table__item")
 
     # get valuation
-    fintech_valuation_list = get_values_from_div_nodes("Valuation", soup)
+    fintech_valuation_list = get_values_from_div_nodes("Valuation", soup,"sifted-tile-table__item sifted-tile-table__item")
 
     # get location
     fintech_location_list = get_values_from_p_nodes("icon-location", soup)
