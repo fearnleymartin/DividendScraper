@@ -41,7 +41,7 @@ def job():
 #main entry point
 if __name__ == "__main__":
     print("Starting program...")
-    schedule.every().saturday.at("18:12").do(job)
+    schedule.every().friday.at("08:45").do(job)
 
     while True:
         schedule.run_pending()
