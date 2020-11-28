@@ -43,7 +43,7 @@ def get_ftse_table(dates):
 
         tables.append(table)
     print("Finished getting table of ftse companies.")
-    return pd.concat(tables).iloc
+    return pd.concat(tables)
 
 
 def get_ftse_table_per_date(date):
