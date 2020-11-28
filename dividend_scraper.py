@@ -25,7 +25,7 @@ buyback_keywords = [
     'repurchases',
     'own shares',
 ]
-suspension_keywords =['suspend','cancel']
+suspension_keywords =['suspend','cancel','not declare']
 reinstatement_keywords =['resume','resuming','resumption','reinstate','reinstating','reinstatement']
 
 # constants (Don't modify)
