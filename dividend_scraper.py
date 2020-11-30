@@ -1,4 +1,4 @@
-# download libraries#
+# importing libraries
 import os
 import requests
 import pandas as pd
@@ -6,12 +6,12 @@ from bs4 import BeautifulSoup
 from datetime import datetime
 
 # Parameters (You can modify these)
-end_date = datetime.today()
+end_date = datetime.today().date()
 
-ftse = 2  # 1 for ftse 100, 2 for ftse 250
+ftse = 1  # 1 for ftse 100, 2 for ftse 250
 
-# get a list of dates
-dates=pd.bdate_range(end=end_date, periods=10).strftime('%Y%m%d').values.tolist()
+# get a list of dates; period refers to the number of business days
+dates=pd.bdate_range(end=end_date, periods=1).strftime('%Y%m%d').values.tolist()
 
 # define keywords
 dividend_keywords = ['dividend']
@@ -25,13 +25,13 @@ buyback_keywords = [
     'repurchases',
     'own shares',
 ]
-suspension_keywords =['suspend','cancel']
+suspension_keywords =['suspend','cancel','not declare']
 reinstatement_keywords =['resume','resuming','resumption','reinstate','reinstating','reinstatement']
 
 # constants (Don't modify)
 base_url = 'https://www.investegate.co.uk'
-excel_filepath = f'dividends_{str.join("_",dates)}_{"ftse100" if ftse == 1 else "ftse250"}.csv'
-excel_filepath_xlsx = f'dividends_{str.join("_",dates)}_{"ftse100" if ftse == 1 else "ftse250"}.xlsx'
+excel_filepath = f'dividends_{str(end_date)}_{"ftse100" if ftse == 1 else "ftse250"}.csv'
+excel_filepath_xlsx = f'dividends_{str(end_date)}_{"ftse100" if ftse == 1 else "ftse250"}.xlsx'
 
 
 def get_ftse_table(dates):
@@ -188,16 +188,18 @@ def check_can_write_to_excel():
             raise IOError("Could not open file! Please close Excel!")
 
 
-def main():
-    print("Starting program...")
+def exporting_data():
+    print("Exporting data...")
     check_can_write_to_excel()
     table = get_ftse_table(dates)
     table = check_companies(table)
     table.to_csv(excel_filepath)
     table.to_excel(excel_filepath_xlsx)
     print(table)
-    print("Finished running.")
+    print("Finished exporting data.")
 
+def main():
+    exporting_data()
 
 if __name__ == "__main__":
     main()
